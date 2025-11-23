@@ -18,7 +18,6 @@
             margin-bottom: 10px;
         }
 
-        /* Controls Area */
         .controls {
             background: #333;
             padding: 15px;
@@ -60,7 +59,6 @@
             margin-top: 10px;
         }
 
-        /* Matrix Grid */
         #grid-container {
             display: grid;
             grid-template-columns: repeat(64, 1fr);
@@ -93,7 +91,6 @@
             overflow-y: auto;
         }
 
-        /* Hidden canvas for image processing */
         canvas {
             display: none;
         }
@@ -129,16 +126,14 @@
         <br><br>
         <label>Draw Color: <input type="color" id="colorPicker" value="#ff0000"></label>
         <br><br>
-        <div style="" id="toolbox"></div>
+        <div id="toolbox"></div>
     </div>
 
     <div id="status">Status: Disconnected</div>
 
-    <!-- The visual grid -->
     <div id="grid-container"></div>
     <div id="log"></div>
 
-    <!-- Hidden canvas to process images -->
     <canvas id="canvas" width="64" height="16"></canvas>
     <script src="matrix.js"></script>
     <script src="grid.js"></script>
@@ -147,9 +142,8 @@
     <script src="image.js"></script>
     <script src="text.js"></script>
     <script src="smartPaint.js"></script>
+    <script src="spotify.js"></script>
     <!-- <script src="paint.js"></script> -->
-    <script src="snake.js"></script>
-    <script src="clock.js"></script>
     <script>
 
         document.getElementById('btnConnect').addEventListener('click', async () => {
