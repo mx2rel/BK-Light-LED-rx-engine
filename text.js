@@ -477,15 +477,18 @@ const FONT = {
 
 let textObjects = {}
 
-function text(id, text, left, top, color, right = -1) {
+function text(id, text, left, top, color, right = -1, characterSpacing = 1) {
     const prev = textObjects[id]
 
     textObjects[id] = {
-        func: getTextPixels, args: { text: text ?? prev?.args.text, left: left ?? prev?.args.left, top: top ?? prev?.args.top, color: color ?? prev?.args.color, right: right ?? prev?.args.right }
+        func: getTextPixels, args: {
+            text: text ?? prev?.args.text, left: left ?? prev?.args.left, top: top ?? prev?.args.top, color: color ?? prev?.args.color, right: right ?? prev?.args.right,
+            characterSpacing: characterSpacing ?? prev?.args.characterSpacing
+        }
     }
 }
 
-function getTextPixels({ text, left, top, color, right }) {
+function getTextPixels({ text, left, top, color, right, characterSpacing }) {
     const pixels = [];
 
     for (let i = 0; i < text.length; i++) {
@@ -494,7 +497,7 @@ function getTextPixels({ text, left, top, color, right }) {
         if (!charPixels) continue;
 
         if (right != -1)
-            if (right - (left + (charPixels[0]?.length ?? 0) - 1) < 5) {
+            if (right - (left + (charPixels[0]?.length ?? 0) - characterSpacing) < 5) {
                 for (let i = 0; i < 3; i++) {
                     pixels.push({ x: left + i * 2, y: top + charPixels.length - 1, color: color })
                 }
@@ -513,7 +516,7 @@ function getTextPixels({ text, left, top, color, right }) {
             }
         }
 
-        left += (charPixels[0]?.length ?? 0) + 1;
+        left += (charPixels[0]?.length ?? 0) + characterSpacing;
     }
 
     return pixels;
