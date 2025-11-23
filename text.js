@@ -477,7 +477,7 @@ const FONT = {
 
 let textObjects = {}
 
-function text(id, text, left, top, color, right = -1, characterSpacing = 1) {
+function text(id, text, left, top, color, right = -1, characterSpacing = "auto") {
     const prev = textObjects[id]
 
     textObjects[id] = {
@@ -490,14 +490,18 @@ function text(id, text, left, top, color, right = -1, characterSpacing = 1) {
 
 function getTextPixels({ text, left, top, color, right, characterSpacing }) {
     const pixels = [];
-
+    let prevSpace = null;
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
+        const characterSpace = characterSpacing == "auto" ? (char == char.toLowerCase() ? 0 : 1) : characterSpacing;
+        if (prevSpace == 0 && (char != char.toLowerCase() || char == char.toUpperCase())) {
+            left += 1;
+        }
         const charPixels = FONT[char];
         if (!charPixels) continue;
 
         if (right != -1)
-            if (right - (left + (charPixels[0]?.length ?? 0) - characterSpacing) < 5) {
+            if (right - (left + (charPixels[0]?.length ?? 0) - characterSpace) < 5) {
                 for (let i = 0; i < 3; i++) {
                     pixels.push({ x: left + i * 2, y: top + charPixels.length - 1, color: color })
                 }
@@ -516,7 +520,8 @@ function getTextPixels({ text, left, top, color, right, characterSpacing }) {
             }
         }
 
-        left += (charPixels[0]?.length ?? 0) + characterSpacing;
+        left += (charPixels[0]?.length ?? 0) + characterSpace;
+        prevSpace = characterSpace;
     }
 
     return pixels;
