@@ -491,11 +491,16 @@ function text(id, text, left, top, color, right = -1, characterSpacing = "auto")
 function getTextPixels({ text, left, top, color, right, characterSpacing }) {
     const pixels = [];
     let prevSpace = null;
+    let prevChar = null;
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
-        const characterSpace = characterSpacing == "auto" ? (char == char.toLowerCase() ? 0 : 1) : characterSpacing;
-        if (prevSpace == 0 && (char != char.toLowerCase() || char == char.toUpperCase())) {
-            left += 1;
+        const characterSpace = characterSpacing == "auto" ? ((char == char.toLowerCase() && char != char.toUpperCase()) ? 0 : 1) : characterSpacing;
+        if (characterSpacing == "auto") {
+            if (prevSpace == 0 && ((char != char.toLowerCase() || char == char.toUpperCase()))) {
+                left += 1;
+            }
+            if (prevSpace == 1 && ((char == char.toLowerCase() && char != char.toUpperCase())))
+                left -= 1;
         }
         const charPixels = FONT[char];
         if (!charPixels) continue;
@@ -520,8 +525,9 @@ function getTextPixels({ text, left, top, color, right, characterSpacing }) {
             }
         }
 
-        left += (charPixels[0]?.length ?? 0) + characterSpace;
+        left += Math.max((charPixels[0]?.length ?? 0) + characterSpace, 1);
         prevSpace = characterSpace;
+        prevChar = char;
     }
 
     return pixels;
