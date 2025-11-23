@@ -1,149 +1,55 @@
-# BK Light 64×16 – Reverse-Engineered LED Fun Screen Toolkit
+# BK Light 64×16 – Spotify Widget
+
+<p align="center">
+  <img src="https://i.imgur.com/qVomDqn.jpeg" style="width:100%">
+</p>
 
 ![MIT License](https://img.shields.io/badge/License-MIT-green.svg)
-![Platform: BLE](https://img.shields.io/badge/Platform-BLE-blue.svg)
-![Reverse Engineering](https://img.shields.io/badge/Reverse%20Engineered-Yes-red.svg)
+![Spotify API](https://img.shields.io/badge/Spotify-API-brightgreen.svg)
+![Node.js](https://img.shields.io/badge/Backend-Node.js-yellow.svg)
 
-This repository contains a small toolkit, rendering pipeline, and example apps (like a Snake game and a digital clock) for the **B.K. Light LED Fun Screen 64×16**, a cheap LED matrix I bought out of curiosity at **Action** for around **20€ / 85 zł**.  
-It was a pure hobby project done over the course of **~6 hours across 2 days**, just for fun.
+This branch contains a **Spotify Now-Playing widget** for the **B.K. Light LED Fun Screen 64×16**.  
+It displays the currently playing track, album cover, and track title on the LED matrix in real time.
 
-> **Device:** LED Fun Screen 64×16  
-> **Store:** Action  
-> **Connectivity:** Bluetooth Low Energy (BLE)  
-> **Tech Stack:** JavaScript (WebBluetooth)
+The project uses a **tiny single-file Node.js server** that communicates with the Spotify Web API and feeds generated frames into the LED renderer.
+
+This is a lightweight, hobby-level project made for fun — nothing fancy, just a practical way to show Spotify playback on the display.
 
 ---
 
 ## ⚠️ Disclaimer
 
-This project is **not affiliated with B.K. Light, Action, or any manufacturer**.  
-The protocol information and code here are the result of **independent reverse engineering** of the official mobile app.  
-Everything in this repo is provided **for educational and research purposes only**, without any guarantees.  
-Use at your own risk.
+This project has **no affiliation** with Spotify, B.K. Light, or any manufacturer.  
+The code is for **educational and personal tinkering** only.  
+Use responsibly and within Spotify’s API rules.
 
 ---
 
-## 📡 About the Device
+## 🎵 What This Branch Does
 
-Surprisingly, the screen’s **internal refresh rate is quite high**, so it supports real animations.
+- Shows **album art** on the 64×16 LED screen (scaled down).
+- Displays **track name** and **artist name**.
+- Updates the screen at a small interval.
+- Fetches data using the **Spotify Web API**.
+- Powered by a very small **Node.js backend** (one file).
 
-However, **BLE throughput is the bottleneck**.  
-The engine used here is based on sending **full frames**, not deltas, so realistically:
-
-- **Comfortable stable refresh rate:** ~**5 FPS** (one frame per 200 ms)
-- **Possible lag:** up to **1 second** in rare cases
-- **Typical lag:** noticeable, but small enough that it doesn’t affect gameplay (e.g., Snake) or normal use
-
----
-
-## 🧩 Reverse-Engineered Protocol
-
-I captured BLE data from the official mobile app (via Wireshark), analyzed the packets, and reconstructed the protocol.  
-Fortunately, the format is **simple and very consistent**.
-
-Below is the full documentation.
+No extra tech beyond Node, the renderer, and the Spotify API.
 
 ---
 
-# 📍 1. Single-Pixel Draw Command
+## 🧰 Requirements
 
-This command tells the screen to update **one pixel**.
+Before running the widget, you need:
 
-### **Packet Structure (10 bytes)**
-
-| Byte Index | Value (Hex) | Meaning             | Notes                         |
-| ---------: | ----------- | ------------------- | ----------------------------- |
-|          0 | `0A`        | Header              | Standard command start        |
-|          1 | `00`        | Reserved            | Always `00`                   |
-|          2 | `05`        | Command             | “Draw Pixel” mode             |
-|          3 | `01`        | Mode                | `01 = Set Pixel`              |
-|          4 | `00`        | Reserved            | Likely Alpha channel (unused) |
-|          5 | `RR`        | Red (0–255)         | Pixel red value               |
-|          6 | `GG`        | Green (0–255)       | Pixel green value             |
-|          7 | `BB`        | Blue (0–255)        | Pixel blue value              |
-|          8 | `XX`        | X coordinate (0–63) | Horizontal position           |
-|          9 | `YY`        | Y coordinate (0–15) | Vertical position             |
+- **Node.js**
+- A **Spotify Developer App**
+- Spotify **Client ID** and **Client Secret**
 
 ---
 
-# 🖼️ 2. Full-Frame Refresh Command (64×16)
+## 🔧 Setup
 
-This is how the device receives a **complete screen image** at once.
+1. Install dependencies:
 
-### 📦 **Total size:** `3081 bytes`
-
-Because BLE packets are limited in size, the mobile app (and our code) sends this in **multiple chunks**, but the device treats it as **one continuous stream**.
-
-### **High-Level Structure**
-
-HEADER (9 bytes) + PIXEL DATA (3072 bytes)
-
-### 📑 2.1 Header (9 bytes)
-
-Every full-screen update begins with the following bytes
-09 0C 00 00 00 00 0C 00 00
-
-Breakdown:
-
-| Byte | Value               | Meaning                                    |
-| ---: | ------------------- | ------------------------------------------ |
-|    0 | `09`                | Command ID — likely “Write Full Frame”     |
-|    1 | `0C`                | Sub-command / format selector              |
-|  2–8 | varies but constant | Parameters for 64×16 frame (offsets/size?) |
-
-### 📑 2.2 Pixel Data (3072 bytes)
-
-Immediately after the header, pixel data is stored in **RGB triplets**:
-
-```
-Byte 9: Pixel(0,0) Red
-Byte 10: Pixel(0,0) Green
-Byte 11: Pixel(0,0) Blue
-Byte 12: Pixel(1,0) Red
-...
-Final bytes: Pixel(63,15) Blue
-```
-
----
-
-### ⚠️ Additional Note on Lag Behavior
-
-During testing, the device occasionally showed **increasing lag over time** when sending frames continuously.  
-It _appears_ as if the device might be **internally buffering or storing frames**, causing delay to accumulate over time.
-
-Notably, this lag **persists even after reseting the device**, which further suggests that the device may queue or internally cache incoming frames instead of discarding them immediately.
-
-This is **only an observation**, not a confirmed fact — I did not investigate this behavior in depth.  
-Most of the time the device works with little to no delay, but under heavy continuous load it may start to fall behind.
-
-## 🕹️ Examples Included
-
-- 🐍 Snake game
-- ⏰ Digital Clock
-- 🎨 Basic pixel drawing utilities
-
----
-
-## 🔧 Features of This Toolkit
-
-- **Simple framebuffer for 64×16 RGB**
-- **Basic renderer** (Text, shapes)
-- Full-frame sender with chunking (BLE safe)
-
----
-
-## 🧠 Why This Exists
-
-Honestly?  
-Because I saw the LED screen for 20€ at Action and thought:
-
-> “Hey, I wonder how this thing works.”
-
-Then I spent ~4/5 hours reverse engineering it, because… why not?  
-It turned out to be surprisingly fun.
-
----
-
-## 📜 License
-
-MIT License
+```bash
+npm install
