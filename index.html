@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLE LED Matrix Controller</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #eee;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        /* Controls Area */
+        .controls {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        button.red {
+            background: #d9534f;
+        }
+
+        button.green {
+            background: #5cb85c;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+        }
+
+        /* Matrix Grid */
+        #grid-container {
+            display: grid;
+            grid-template-columns: repeat(64, 1fr);
+            gap: 1px;
+            background: #000;
+            border: 2px solid #444;
+            width: 95vw;
+            max-width: 1280px;
+            margin: 0 auto;
+            aspect-ratio: 64/16;
+        }
+
+        .pixel {
+            background-color: #222;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .pixel:hover {
+            outline: 1px solid white;
+        }
+
+        #log {
+            margin-top: 20px;
+            color: #888;
+            font-size: 12px;
+            font-family: monospace;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        /* Hidden canvas for image processing */
+        canvas {
+            display: none;
+        }
+
+        .tool-group {
+            border: 1px solid #555;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .tool-group-header {
+            background: #333;
+            padding: 6px 10px;
+            cursor: pointer;
+            user-select: none;
+            font-weight: bold;
+        }
+
+        .tool-group-content {
+            padding: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>BLE Matrix (64x16)</h1>
+
+    <div class="controls">
+        <button id="btnConnect" class="green">Connect Bluetooth</button>
+        <button id="btnDisconnect" class="red" disabled>Disconnect</button>
+        <br><br>
+        <label>Draw Color: <input type="color" id="colorPicker" value="#ff0000"></label>
+        <br><br>
+        <div style="" id="toolbox"></div>
+    </div>
+
+    <div id="status">Status: Disconnected</div>
+
+    <!-- The visual grid -->
+    <div id="grid-container"></div>
+    <div id="log"></div>
+
+    <!-- Hidden canvas to process images -->
+    <canvas id="canvas" width="64" height="16"></canvas>
+    <script src="matrix.js"></script>
+    <script src="grid.js"></script>
+    <script src="toolbox.js"></script>
+    <script src="shapes.js"></script>
+    <script src="text.js"></script>
+    <script src="smartPaint.js"></script>
+    <!-- <script src="paint.js"></script> -->
+    <script src="snake.js"></script>
+    <script src="clock.js"></script>
+    <script>
+
+        document.getElementById('btnConnect').addEventListener('click', async () => {
+            await connectBluetooth();
+            document.getElementById('status').innerText = `Connected to ${device.name}`;
+            updateUIState();
+        });
+
+        document.getElementById('btnDisconnect').addEventListener('click', async () => {
+            await disconnect();
+            document.getElementById('status').innerText = "Status: Disconnected";
+            updateUIState();
+        });
+
+        function updateUIState() {
+            document.getElementById('btnConnect').disabled = isConnected;
+            document.getElementById('btnDisconnect').disabled = !isConnected;
+        }
+
+    </script>
+</body>
+
+</html>
